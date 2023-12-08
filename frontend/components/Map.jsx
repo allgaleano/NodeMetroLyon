@@ -78,13 +78,14 @@ export const Map = ({ stations, connections }) => {
         const routeStationNames = routeData ? routeData.route.map(station => station.name) : [];
 
         connections.forEach(connection => {
-            const source = stations.find(station => station.name === connection.origin._name && station.line === connection.origin._line);
-            const target = stations.find(station => station.name === connection.destination._name && station.line === connection.destination._line);
+            const source = stations.find(station => station.name === connection.origin._name);
+            const target = stations.find(station => station.name === connection.destination._name);
 
             if (source && target) {
-                const isConnectionInRoute = routeStationNames.includes(source.name) && routeStationNames.includes(target.name)
-                const strokeColor = isConnectionInRoute ? lineColors[source.line] : 'grey'
-                const strokeWidth = isConnectionInRoute ? 2 : 1
+                const isConnectionInRoute = routeStationNames.includes(source.name) && routeStationNames.includes(target.name);
+                // Ahora el color de la línea se determina por la conexión, no por la estación
+                const strokeColor = isConnectionInRoute ? lineColors[connection.line] : 'grey';
+                const strokeWidth = isConnectionInRoute ? 2 : 1;
                 svg.append("line")
                     .classed("connection", true)
                     .attr("x1", xScale(source.longitude))
@@ -92,7 +93,7 @@ export const Map = ({ stations, connections }) => {
                     .attr("x2", xScale(target.longitude))
                     .attr("y2", yScale(target.latitude))
                     .attr("stroke", strokeColor)
-                    .attr("stroke-width", strokeWidth)
+                    .attr("stroke-width", strokeWidth);
             }
         });
 
@@ -171,20 +172,30 @@ export const Map = ({ stations, connections }) => {
 
     const renderRouteDetails = () => {
         if (!routeData) return null;
-
+    
         const { route, totalTime } = routeData;
-
+    
         return (
             <div className="border rounded-lg w-fit m-auto mt-10 px-10 py-5 flex flex-col bg-gray-800 border-gray-700">
                 <h3 className='font-semibold'>Ruta desde <span className='underline'>{origin}</span> hasta <span className='underline'>{destination}</span>:</h3>
                 <ul className='mt-2 list-none'>
                     {route.map((station, index) => {
-
-                        const lineColor = lineColors[station.line] || 'white';
-
+                        let lineColor = 'white';
+    
+                        // Si no es la última estación, usa la conexión a la siguiente estación para el color
+                        if (index < route.length - 1) {
+                            const nextStation = route[index + 1];
+                            const connection = connections.find(con => con.origin._name === station.name && con.destination._name === nextStation.name);
+                            lineColor = connection ? lineColors[connection.line] : 'white';
+                        } else {
+                            // Si es la última estación, usa la conexión desde la estación anterior
+                            const prevStation = route[index - 1];
+                            const connection = connections.find(con => con.origin._name === prevStation.name && con.destination._name === station.name);
+                            lineColor = connection ? lineColors[connection.line] : 'white';
+                        }
+    
                         return (
                             <li key={index} className="station-item flex items-center mt-2">
-
                                 <span className="line-dot mr-2 inline-block h-4 w-4 rounded-full" style={{ backgroundColor: lineColor }}></span>
                                 {station.name}
                             </li>
@@ -211,14 +222,14 @@ export const Map = ({ stations, connections }) => {
                 <select className="min-w-[270px] bg-gray-800 text-white border border-gray-700 rounded p-2" value={origin} onChange={handleOriginChange}>
                     <option value="">Estación de Origen</option>
                     {stations.map(station => (
-                        <option key={station.name + station.line} value={station.name}>{station.name}</option>
+                        <option key={station.name} value={station.name}>{station.name}</option>
                     ))}
                 </select>
 
                 <select className="min-w-[270px] bg-gray-800 text-white border border-gray-700 rounded p-2" value={destination} onChange={handleDestinationChange}>
                     <option value="">Estación de Destino</option>
                     {stations.map(station => (
-                        <option key={station.name + station.line} value={station.name}>{station.name}</option>
+                        <option key={station.name} value={station.name}>{station.name}</option>
                     ))}
                 </select>
 

@@ -7,18 +7,16 @@ router.get('/stations', (req, res) => {
     const stations = metro.getStations()
     res.json(stations.map(station => ({
         name: station.name,
-        line: station.line,
         latitude: station.latitude,
         longitude: station.longitude
     })))
 })
-router.get('/stations/:name/:line/connections', (req, res) => {
+router.get('/stations/:name/connections', (req, res) => {
     console.log('Request received for: ', req.path)
-    if (!req.params.name || !req.params.line) {
-        return res.status(400).json({ message: 'Se requieren el nombre y la línea de la estación' });
+    if (!req.params.name) {
+        return res.status(400).json({ message: 'Se requieren el nombre de la estación' });
     }
     const stationName = req.params.name.toLowerCase();
-    const line = req.params.line.toUpperCase(); // Suponiendo que la línea siempre se maneje en mayúsculas
 
     const stations = metro.getStations();
     if (!stations) {
@@ -26,9 +24,8 @@ router.get('/stations/:name/:line/connections', (req, res) => {
     }
 
     const station = stations.find(st =>
-        st.name && st.line &&
-        st.name.toLowerCase() === stationName &&
-        st.line.toUpperCase() === line // Comprobar que la línea coincida
+        st.name &&
+        st.name.toLowerCase() === stationName
     );
 
     if (!station) {
@@ -70,7 +67,6 @@ router.get('/route/:startStation/:endStation', (req, res) => {
 
     const routeDetails = result.path.map(station => ({
         name: station.name,
-        line: station.line,
         latitude: station.latitude,
         longitude: station.longitude
     }));

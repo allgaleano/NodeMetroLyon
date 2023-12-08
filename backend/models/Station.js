@@ -1,7 +1,6 @@
 class Station {
-    constructor(name, line, latitude, longitude) {
+    constructor(name, latitude, longitude) {
         this._name = name
-        this._line = line
         this._latitude = latitude
         this._longitude = longitude
     }
@@ -17,12 +16,6 @@ class Station {
     }
     set name(value) {
         return this._name = value;
-    }
-    get line() {
-        return this._line
-    }
-    set line(value) {
-        return this._line = value;
     }
     get latitude() {
         return this._latitude

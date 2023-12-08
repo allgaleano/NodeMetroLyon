@@ -5,6 +5,7 @@ const PriorityQueue = require('priorityqueuejs')
 class Graph {
     constructor() {
         this.adjacencies = new Map()
+        this.transbordoTime = 5;
     }
 
     addStation(station) {
@@ -13,9 +14,9 @@ class Graph {
         }
     }
 
-    addConnection(origin, destination, time) {
+    addConnection(origin, destination, time, line) {
         const connections = this.adjacencies.get(origin) || [];
-        connections.push(new Connection(destination, time));
+        connections.push(new Connection(destination, time, line));
         this.adjacencies.set(origin, connections);
     }
 
@@ -34,7 +35,8 @@ class Graph {
                 allConnections.push({
                     origin: station,
                     destination: connection.destination,
-                    time: connection.time
+                    time: connection.time,
+                    line: connection.line
                 });
             });
         });
@@ -51,15 +53,16 @@ class Graph {
     }
 
     aStar(start, goal) {
-        const frontier = new PriorityQueue((a, b) => a.priority - b.priority);
-        const cameFrom = new Map();
-        const costSoFar = new Map();
+        let frontier = [{ node: start, priority: 0 }];
+        let cameFrom = new Map();
+        let costSoFar = new Map();
 
-        frontier.enq({ node: start, priority: 0 });
         costSoFar.set(start, 0);
 
-        while (!frontier.isEmpty()) {
-            const current = frontier.deq().node;
+        while (frontier.length > 0) {
+            // Ordenar la frontera por prioridad y tomar el primer elemento
+            frontier.sort((a, b) => a.priority - b.priority);
+            let current = frontier.shift().node;
 
             if (current.name === goal.name) {
                 return {
@@ -69,19 +72,29 @@ class Graph {
             }
 
             this.getConnections(current).forEach(connection => {
-                const next = connection.destination;
-                const newCost = costSoFar.get(current) + connection.time;
+                let next = connection.destination;
+                let newCost = costSoFar.get(current) + connection.time;
 
+                // Si es la primera vez que visitamos 'next' o encontramos un camino más barato
                 if (!costSoFar.has(next) || newCost < costSoFar.get(next)) {
+                    // Sumar el tiempo de transbordo si se cambia de línea.
+                    if (cameFrom.has(current)) {
+                        let lastConnection = cameFrom.get(current);
+                        if (this.getConnections(lastConnection).some(conn => conn.destination === current) && 
+                            this.getConnections(current).some(conn => conn.destination === next && conn.line !== connection.line)) {
+                            newCost += this.transbordoTime;
+                        }
+                    }
+                    
                     costSoFar.set(next, newCost);
-                    const priority = newCost + Graph.heuristic(next, goal);
-                    frontier.enq({ node: next, priority: priority });
+                    let priority = newCost + Graph.heuristic(next, goal); // Asume que Graph.heuristic es una función estática.
+                    frontier.push({ node: next, priority: priority });
                     cameFrom.set(next, current);
                 }
             });
         }
 
-        return { path: null, totalTime: 0 }; 
+        return { path: null, totalTime: 0 };
     }
 
     reconstructPath(cameFrom, current) {

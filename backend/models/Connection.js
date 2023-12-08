@@ -1,7 +1,8 @@
 class Connection {
-    constructor(destination, time) {
+    constructor(destination, time, line) {
         this._destination = destination
         this._time = time
+        this.line = line
     }
 
     get destination() {
@@ -9,6 +10,12 @@ class Connection {
     }
     set destination(value) {
         return this._destination = value
+    }
+    get line() {
+        return this._line
+    }
+    set line(value) {
+        return this._line = value
     }
     get time() {
         return this._time
