@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    background-color: rgb(10, 10, 10);
+    color: white;
+}
+
+.tooltip {
+    color: black;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 5px;
+    font-size: 12px;
+    pointer-events: none;
+    position: absolute;
+    text-align: center;
+    visibility: hidden;
+}
+
+.station-item {
+    position: relative;
+    padding-left: 20px; /* Espacio para el punto y la línea */
+    list-style: none; /* Remueve el estilo de lista por defecto */
+}
+
+.station-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 5px; /* Ajusta según la posición del punto */
+    top: 14px; /* Ajusta para alinear con el centro del punto */
+    bottom: -16px;
+    width: 1px; /* Ancho de la línea de conexión */
+    background-color: rgb(162, 162, 162); /* Color de la línea de conexión */
+}
+
+.line-dot {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 11px; /* Tamaño del punto */
+    height: 11px; /* Tamaño del punto */
+    border-radius: 50%; /* Hace el punto redondo */
+    background-color: red; /* Color inicial, se sobrescribe con el estilo en línea */
+    z-index: 2;
+}
